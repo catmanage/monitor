@@ -1,9 +1,9 @@
-#include "createWindows.h"
-#include "record.h"
-#include "timeProcess.h"
-#include "tools.h"
-#include "maindef.h"
-#include "dailyUpdate.h"
+#include "include/header/createWindows.h"
+#include "include/header/record.h"
+#include "include/header/timeProcess.h"
+#include "include/header/tools.h"
+#include "include/header/maindef.h"
+#include "include/header/dailyUpdate.h"
 
 
 
