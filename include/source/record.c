@@ -18,14 +18,35 @@ void formatTime(clock_t time, char* buffer, size_t size) {
 }
 
 void initializeFiles() {
+    // Ensure directory exists
+    mkdir("records");
+
+    // Open TEMP_RECORD_FILE for appending
     FILE* focusFile = fopen(TEMP_RECORD_FILE, "a+");
-    FILE* totalFile = fopen(TOTAL_RECORD_FILE, "a+");
-    if (focusFile == NULL || totalFile == NULL) {
-        perror("Error opening file");
-        MessageBox(NULL, "Error opening file.", "Error", MB_OK | MB_ICONERROR);
-        exit(1);
+    if (focusFile == NULL) {
+        fprintf(stderr, "Error opening %s for appending\n", TEMP_RECORD_FILE);
+        return;
     }
+
+    // Check if file is empty
+    fseek(focusFile, 0, SEEK_END);
+    long fileSize = ftell(focusFile);
+    if (fileSize == 0) {
+        char currentDate[LINELENGTH];
+        getCurrentDate(currentDate, sizeof(currentDate));
+        fillWithSpaces(currentDate, sizeof(currentDate));
+        fprintf(focusFile, "%s", currentDate);
+    }
+
     fclose(focusFile);
+
+    // Open TOTAL_RECORD_FILE for appending
+    FILE* totalFile = fopen(TOTAL_RECORD_FILE, "a+");
+    if (totalFile == NULL) {
+        fprintf(stderr, "Error opening %s for appending\n", TOTAL_RECORD_FILE);
+        return;
+    }
+
     fclose(totalFile);
 }
 

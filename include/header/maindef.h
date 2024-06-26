@@ -17,6 +17,7 @@
 #define TOTAL_RECORD_FILE "records\\total_records.txt"
 #define TEMP_RECORD_FILE "records\\temp_records.txt"
 
+
 //每一行的长度
 #define LINELENGTH 50
 
