@@ -1,21 +1,10 @@
-#include "include/header/createWindows.h"
-#include "include/header/record.h"
-#include "include/header/timeProcess.h"
-#include "include/header/tools.h"
-#include "include/header/maindef.h"
-#include "include/header/dailyUpdate.h"
-
-
-
-
+#include "includes.h"
 
 void CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) {
+     // 获取当前活动窗口的进程名
     char currentProcessName[MAX_PATH_LENGTH];
-    getActiveWindowProcessName(currentProcessName); // 获取当前活动窗口的进程名
+    getActiveWindowProcessName(currentProcessName);
     
-    //更新暂时的记录文件到日期记录文件
-    updateTemp();
-
     //给窗口添加时间
     maintainProce(currentProcessName);
     
@@ -26,11 +15,15 @@ void CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) {
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-
-   
-
-    
     initializeFiles(); // 初始化记录文件
+
+    // 获取屏幕宽高
+    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+    // 计算窗口初始大小
+    int windowWidth = screenWidth / 2;
+    int windowHeight = screenHeight / 2;
 
     WNDCLASS wc = {0};
     wc.lpfnWndProc = WndProc; // 指定窗口过程函数
@@ -38,8 +31,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.lpszClassName = "FocusTimeWindowClass";
 
     RegisterClass(&wc); // 注册窗口类
+
     hwndMain = CreateWindow(wc.lpszClassName, "Focus Time Tracker", WS_OVERLAPPEDWINDOW,
-                            CW_USEDEFAULT, CW_USEDEFAULT, 400, 300, NULL, NULL, hInstance, NULL); // 创建窗口
+                            CW_USEDEFAULT, CW_USEDEFAULT, windowWidth, windowHeight, 
+                            NULL, NULL, hInstance, NULL); // 创建窗口
 
     if (hwndMain == NULL) {
         MessageBox(NULL, "Window creation failed.", "Error", MB_OK | MB_ICONERROR); // 窗口创建失败时显示错误提示框
@@ -48,8 +43,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     ShowWindow(hwndMain, nCmdShow); // 显示窗口
     UpdateWindow(hwndMain);
-
-
 
     // 设置定时器
     UINT_PTR timerId = SetTimer(hwndMain, TIMER_ID, CHECK_INTERVAL, TimerProc);

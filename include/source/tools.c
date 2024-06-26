@@ -38,7 +38,7 @@ void getActiveWindowProcessName(char* processName) {
 
 //寻找某一行，找到返回行数，失败返回-1
 int findLine(FILE *file, const char *aim) {
-    char line[LINELENGTH];
+    char line[NAMELENGTH];
     int lineNumber = 1;
 
     // Rewind the file to the beginning
@@ -69,7 +69,7 @@ int findLine(FILE *file, const char *aim) {
 
 
 void replaceLine(int lineNumber, const char *newLine, FILE *file) {
-     char buffer[LINELENGTH];
+     char buffer[NAMELENGTH];
      
     // 将文件指针移动到指定行的开头位置
     fseek(file, 0, SEEK_SET);

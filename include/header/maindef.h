@@ -1,12 +1,18 @@
 #ifndef MAINDEF_H
 #define MAINDEF_H
 
+
 #include <windows.h>
 #include <psapi.h>
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
 #include <processthreadsapi.h>
+#include "sqlite3.h"
+#include <tchar.h>
+#include <strsafe.h>
+#include <VersionHelpers.h>
+
 
 #define TIMER_ID 1
 #define CHECK_INTERVAL 5000 // 检查间隔（毫秒）
@@ -19,10 +25,17 @@
 
 
 //每一行的长度
-#define LINELENGTH 50
+#define  NAMELENGTH 100
+
+//数据库文件名
+#define DATABASENAME "records.db"
+#define NAMETABLENAME "processName"
+#define RECORDSTABLENAME "records"
 
 typedef struct {
     char processName[MAX_PATH_LENGTH];
+    char date[NAMELENGTH];
+    int section;
     int totalTime;
     int dateTime;
 } ProcessFocusTime;
@@ -31,6 +44,5 @@ extern ProcessFocusTime focusTimes[MAX_PROCESSES];
 extern int numProcesses;
 extern clock_t focusStartTime;
 extern HWND hwndMain;
-extern char line[LINELENGTH];
 
 #endif // MAINDEF_H

@@ -4,91 +4,66 @@
 
 
 
+
 // 获取当前日期字符串
-void getCurrentDate(char* buffer, size_t size) {
+void getCurrentDate(char* date,size_t size) {
+    // 获取当前时间
     time_t now = time(0);
     struct tm tstruct;
     localtime_s(&tstruct, &now);
-    strftime(buffer, size, "%Y_%m_%d", &tstruct); // 格式化日期为年-月-日
+
+    // 格式化日期为 年_月_日
+    strftime(date, size, "%Y_%m_%d", &tstruct);
 }
+
 
 // 格式化时间为小时、分钟、秒
 void formatTime(clock_t time, char* buffer, size_t size) {
     snprintf(buffer, size, "%d", time); // 格式化为 HH小时MM分SS秒
 }
 
+
 void initializeFiles() {
-    // Ensure directory exists
-    mkdir("records");
+    sqlite3 *db;
+    char *err_msg = 0;
 
-    // Open TEMP_RECORD_FILE for appending
-    FILE* focusFile = fopen(TEMP_RECORD_FILE, "a+");
-    if (focusFile == NULL) {
-        fprintf(stderr, "Error opening %s for appending\n", TEMP_RECORD_FILE);
-        return;
+    int rc = sqlite3_open(DATABASENAME, &db);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
+        return ;
     }
 
-    // Check if file is empty
-    fseek(focusFile, 0, SEEK_END);
-    long fileSize = ftell(focusFile);
-    if (fileSize == 0) {
-        char currentDate[LINELENGTH];
-        getCurrentDate(currentDate, sizeof(currentDate));
-        fillWithSpaces(currentDate, sizeof(currentDate));
-        fprintf(focusFile, "%s", currentDate);
+    const char* createNameTableSQL = 
+        "CREATE TABLE IF NOT EXISTS " NAMETABLENAME " ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "processName TEXT NOT NULL);";
+
+    const char* createRecordsTableSQL =
+    "CREATE TABLE IF NOT EXISTS " RECORDSTABLENAME " ("
+    "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+    "processId INTEGER NOT NULL,"
+    "section INTEGER NOT NULL,"
+    "time INTEGER NOT NULL,"
+    "date TEXT NOT NULL,"
+    "UNIQUE (processId, date, section)"
+    ");";
+
+
+    rc = sqlite3_exec(db, createNameTableSQL, 0, 0, &err_msg);
+    if (rc != SQLITE_OK ) {
+        fprintf(stderr, "SQL error: %s\n", err_msg);
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+        return ;
+    }
+    rc = sqlite3_exec(db, createRecordsTableSQL, 0, 0, &err_msg);
+    if (rc != SQLITE_OK ) {
+        fprintf(stderr, "SQL error: %s\n", err_msg);
+        sqlite3_free(err_msg);
+        sqlite3_close(db);
+        return ;
     }
 
-    fclose(focusFile);
-
-    // Open TOTAL_RECORD_FILE for appending
-    FILE* totalFile = fopen(TOTAL_RECORD_FILE, "a+");
-    if (totalFile == NULL) {
-        fprintf(stderr, "Error opening %s for appending\n", TOTAL_RECORD_FILE);
-        return;
-    }
-
-    fclose(totalFile);
-}
-
-
-
-void updateFocusTime(ProcessFocusTime* processFocusTime,int f) {
-    FILE* file=NULL;
-    int time=0;
-
-    if(f==1){
-        file = fopen(TOTAL_RECORD_FILE, "r+");
-        time=processFocusTime->totalTime;
-    }else{
-        file = fopen(TEMP_RECORD_FILE, "r+");
-        time=processFocusTime->dateTime;
-        
-    }
-
-    if (file == NULL) {
-        MessageBox(NULL, "Error opening total record file.", "Error", MB_OK | MB_ICONERROR);
-        return;
-    }
-
-    //找对应行数
-    int lines=findLine(file,processFocusTime->processName);
-
-    if (lines!=-1) {
-        strcpy(line,processFocusTime->processName);
-        strcat(line,":");
-
-        char temp[LINELENGTH]; // 假设足够大，可以容纳转换后的整数字符串
-        sprintf(temp, "%d", time); // 将整数 num 格式化为字符串
-        strcat(line,temp);
-
-        fillWithSpaces(line,sizeof(line));
-        replaceLine(lines, line, file);
-
-    } else {
-        // Didn't find the process name, add new record at the end of the file
-        fseek(file, 0, SEEK_END); // Move to the end of the file
-        fprintf(file, "%s:%d\n", processFocusTime->processName, time);
-    }
-
-    fclose(file);
+    sqlite3_close(db);
+    return ;
 }
